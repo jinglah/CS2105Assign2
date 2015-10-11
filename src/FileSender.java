@@ -17,8 +17,10 @@ public class FileSender {
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
 		DatagramPacket pkt;
-		byte[] data = new byte[20];
+	
+		byte[] data = new byte[80];
 		ByteBuffer b = ByteBuffer.wrap(data);
+		//ByteBuffer b = ByteBuffer.wrap(packet);
 		String src = args[2];
 		CRC32 crc = new CRC32();
 
@@ -34,15 +36,14 @@ public class FileSender {
 			// reserve space for checksum
 			b.putLong(0);
 			b.putInt(count);
+			b.put(buffer);
 			crc.reset();
 			crc.update(data, 8, data.length-8);
 			long chksum = crc.getValue();
 			b.rewind();
 			b.putLong(chksum);
-			byte[] packet = new byte[80];
-			System.arraycopy(data, 0, packet, 0, data.length);
-			System.arraycopy(buffer, 0, packet, data.length, buffer.length);
-			pkt = new DatagramPacket(packet, packet.length, addr);
+			
+			pkt = new DatagramPacket(data, data.length, addr);
 			// Debug output
 			//System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(packet));
 			sk.send(pkt);

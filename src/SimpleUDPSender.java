@@ -35,7 +35,7 @@ public class SimpleUDPSender {
 
 			pkt = new DatagramPacket(data, data.length, addr);
 			// Debug output
-			System.out.println("Sent CRC:" + chksum + " Contents:" + data.length);
+			//System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(data));
 			sk.send(pkt);
 		}
 	}
