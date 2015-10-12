@@ -16,6 +16,7 @@ public class SimpleUDPReceiver {
 		byte[] data = new byte[1500];
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
+		
 		CRC32 crc = new CRC32();
 		while(true)
 		{

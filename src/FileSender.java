@@ -5,6 +5,7 @@ import java.nio.*;
 import java.util.zip.*;
 
 public class FileSender {
+	private final static int DATA_SIZE = 60;
 
 	public static void main(String[] args) throws Exception 
 	{
@@ -18,12 +19,12 @@ public class FileSender {
 		DatagramSocket sk = new DatagramSocket();
 		DatagramPacket pkt;
 		byte[] rcv = new byte[60];
+		DatagramPacket rcvPkt; 
 		
 		String dest = args[3];
 	
 		byte[] data = new byte[80];
 		ByteBuffer b = ByteBuffer.wrap(data);
-		//ByteBuffer b = ByteBuffer.wrap(packet);
 		String src = args[2];
 		CRC32 crc = new CRC32();
 
@@ -42,8 +43,8 @@ public class FileSender {
 		b.rewind();
 		b.putLong(chksum);
 		pkt = new DatagramPacket(data, data.length, addr);
-		// Debug output
-		System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(data));
+		rcvPkt = new DatagramPacket(rcv, rcv.length);
+		ByteBuffer r = ByteBuffer.wrap(rcv);
 		sk.send(pkt);
 		
 		while((read = is.read(buffer, 0, 60)) != -1)
@@ -60,12 +61,29 @@ public class FileSender {
 			b.putLong(chksum);
 			
 			pkt = new DatagramPacket(data, data.length, addr);
+			//System.out.println(count);
 			// Debug output
-			//System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(packet));
+			//System.out.println("Sent CRC:" + chksum);
 			sk.send(pkt);
+			
+			rcvPkt.setLength(rcv.length);
+			sk.receive(rcvPkt);
+			int ackNum = r.getInt();
+			while(rcvPkt.getLength() < 4 && ackNum != count)
+			{
+				r.clear();
+				sk.receive(rcvPkt);
+				ackNum = r.getInt();
+				if(rcvPkt.getLength() >= 4)
+				{
+					System.out.println(ackNum);
+				}
+			}
+			System.out.println("OUT OF LOOP " + ackNum);
+			r.clear();
 			count += 1;
 		}
-		System.out.println("Sent " + count + " packets");
+		System.out.println("Sent " + (count-1) + " packets");
 	}
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();

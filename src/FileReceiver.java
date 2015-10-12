@@ -21,9 +21,12 @@ public class FileReceiver {
 		File destFile = null;
 		FileOutputStream fos;
 		String dest = "";
+		int currPkt = 0;
 		
 		byte[] dst = new byte[60];
 		byte[] pktData = new byte[60];
+		byte[] ackData = new byte[10];
+		ByteBuffer c = ByteBuffer.wrap(ackData);
 		
 		while(true)
 		{
@@ -39,16 +42,21 @@ public class FileReceiver {
 			crc.reset();
 			crc.update(data, 8, pkt.getLength()-8);
 			// Debug output
-			System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
+			//System.out.println("Received CRC:" + crc.getValue());
 			if (crc.getValue() != chksum)
 			{
 				System.out.println("Pkt corrupt");
 				//send nak
+				//int corruptPktNum = b.getInt();
+				c.putInt(b.getInt());
+				//DatagramPacket nak = new DatagramPacket(ackData, 0, 0, pkt.getSocketAddress());
+				//sk.send(nak);
 				
 			}
 			else
 			{
 				int pktNum = b.getInt();
+			
 				System.out.println("Pkt " + pktNum);
 				if(pktNum == 0)
 				{
@@ -63,7 +71,7 @@ public class FileReceiver {
 				    }
 				    dst = Arrays.copyOf(dst, i + 1);
 				    dest = new String(dst);
-					System.out.println("Destination: " + dest + dest.length());
+					//System.out.println("Destination: " + dest + dest.length());
 				}
 				else{
 					//pack file back
@@ -89,10 +97,10 @@ public class FileReceiver {
 						e.printStackTrace();
 					}
 				}
-			
-				DatagramPacket ack = new DatagramPacket(new byte[0], 0, 0,
-						pkt.getSocketAddress());
+				c.putInt(pktNum);
+				DatagramPacket ack = new DatagramPacket(ackData, 0, ackData.length, pkt.getSocketAddress());
 				sk.send(ack);
+				c.clear();
 			}	
 		}
 	}
