@@ -19,6 +19,7 @@ public class FileSender {
 		InetSocketAddress addr = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
+		sk.setSoTimeout(10);
 		DatagramPacket pkt;
 		byte[] rcv = new byte[60];
 		DatagramPacket rcvPkt; 
@@ -29,12 +30,14 @@ public class FileSender {
 		ByteBuffer b = ByteBuffer.wrap(data);
 		String src = args[2];
 		CRC32 crc = new CRC32();
-
+		
 		File f = new File(src);
 		byte[] buffer = new byte[60];
 		int read = 0;
 		BufferedInputStream is = new BufferedInputStream(new FileInputStream(f));
 		int count = 1;
+		
+		//send destination
 		b.clear();
 		b.putLong(0);
 		b.putInt(0);
@@ -48,33 +51,8 @@ public class FileSender {
 		rcvPkt = new DatagramPacket(rcv, rcv.length);
 		ByteBuffer r = ByteBuffer.wrap(rcv);
 		sk.send(pkt);
+		
 		int ackNum;
-		long startTime = System.currentTimeMillis();
-		long endTime;
-		while(true)
-		{
-			
-			r.clear();
-			rcvPkt.setLength(rcv.length);
-			sk.receive(rcvPkt);
-			
-			if(rcvPkt.getLength() >= 4)
-			{
-				ackNum = r.getInt();
-				if(ackNum == 0)
-				{
-					System.out.println(ackNum);
-					break;
-				}
-			}
-			endTime = System.currentTimeMillis();
-			if((endTime - startTime)/1000 > 10)
-			{
-				System.out.println("Timeout" + (endTime - startTime)/1000);
-				sk.send(pkt);
-				continue;
-			}
-		}
 		
 		while((read = is.read(buffer, 0, 60)) != -1)
 		{
@@ -91,14 +69,20 @@ public class FileSender {
 			
 			pkt = new DatagramPacket(data, data.length, addr);
 			sk.send(pkt);
-		
-			startTime = System.currentTimeMillis();
+			
 			while(true)
 			{
-				//System.out.println("Entered");
 				r.clear();
 				rcvPkt.setLength(rcv.length);
-				sk.receive(rcvPkt);
+				try{
+					sk.receive(rcvPkt);
+				}
+				catch (SocketTimeoutException e) {
+	                //resending
+					System.out.println("Resending");
+					sk.send(pkt);
+	                continue;
+	            }
 				
 				if(rcvPkt.getLength() >= 4)
 				{
@@ -109,21 +93,15 @@ public class FileSender {
 						break;
 					}
 				}
-				endTime = System.currentTimeMillis();
-				if((endTime - startTime)/1000 > 10)
-				{
-					System.out.println("Timeout!" + (endTime - startTime)/1000);
-					sk.send(pkt);
-					continue;
-				}
 			}
-			System.out.println("OUT OF LOOP " + ackNum);
+			//System.out.println("OUT OF LOOP " + ackNum);
 			r.clear();
+			
 			count += 1;
 		}
 		System.out.println("Sent " + (count-1) + " packets");
-		long end = System.currentTimeMillis();
-		System.out.println((end - start)/1000);
+		//long end = System.currentTimeMillis();
+		//System.out.println((end - start)/1000);
 	}
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
