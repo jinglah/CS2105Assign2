@@ -31,15 +31,21 @@ public class FileReceiver {
 			crc.reset();
 			crc.update(data, 8, pkt.getLength()-8);
 			// Debug output
-			 System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
+			System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
 			if (crc.getValue() != chksum)
 			{
 				System.out.println("Pkt corrupt");
 			}
 			else
 			{
-				System.out.println("Pkt " + b.getInt());
+				int pktNum = b.getInt();
+				System.out.println("Pkt " + pktNum);
+				if(pktNum == 0)
+				{
+					//get destination
 				
+				}
+			
 				DatagramPacket ack = new DatagramPacket(new byte[0], 0, 0,
 						pkt.getSocketAddress());
 				sk.send(ack);

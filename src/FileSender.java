@@ -17,6 +17,7 @@ public class FileSender {
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
 		DatagramPacket pkt;
+		String dest = args[3];
 	
 		byte[] data = new byte[80];
 		ByteBuffer b = ByteBuffer.wrap(data);
@@ -29,6 +30,19 @@ public class FileSender {
 		int read = 0;
 		BufferedInputStream is = new BufferedInputStream(new FileInputStream(f));
 		int count = 1;
+		b.clear();
+		b.putLong(0);
+		b.putInt(0);
+		b.put(dest.getBytes());
+		crc.reset();
+		crc.update(data, 8, data.length-8);
+		long chksum = crc.getValue();
+		b.rewind();
+		b.putLong(chksum);
+		pkt = new DatagramPacket(data, data.length, addr);
+		// Debug output
+		System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(data));
+		sk.send(pkt);
 		
 		while((read = is.read(buffer, 0, 60)) != -1)
 		{
@@ -39,7 +53,7 @@ public class FileSender {
 			b.put(buffer);
 			crc.reset();
 			crc.update(data, 8, data.length-8);
-			long chksum = crc.getValue();
+			chksum = crc.getValue();
 			b.rewind();
 			b.putLong(chksum);
 			
