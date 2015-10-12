@@ -6,9 +6,11 @@ import java.util.zip.*;
 
 public class FileSender {
 	private final static int DATA_SIZE = 60;
+	final static Timer timer = new Timer();
 
 	public static void main(String[] args) throws Exception 
 	{
+		long start = System.currentTimeMillis();
 		if (args.length != 4) {
 			System.err.println("Usage: FileSender <host> <port> <src> <dest>");
 			System.exit(-1);
@@ -46,6 +48,33 @@ public class FileSender {
 		rcvPkt = new DatagramPacket(rcv, rcv.length);
 		ByteBuffer r = ByteBuffer.wrap(rcv);
 		sk.send(pkt);
+		int ackNum;
+		long startTime = System.currentTimeMillis();
+		long endTime;
+		while(true)
+		{
+			
+			r.clear();
+			rcvPkt.setLength(rcv.length);
+			sk.receive(rcvPkt);
+			
+			if(rcvPkt.getLength() >= 4)
+			{
+				ackNum = r.getInt();
+				if(ackNum == 0)
+				{
+					System.out.println(ackNum);
+					break;
+				}
+			}
+			endTime = System.currentTimeMillis();
+			if((endTime - startTime)/1000 > 10)
+			{
+				System.out.println("Timeout" + (endTime - startTime)/1000);
+				sk.send(pkt);
+				continue;
+			}
+		}
 		
 		while((read = is.read(buffer, 0, 60)) != -1)
 		{
@@ -61,22 +90,31 @@ public class FileSender {
 			b.putLong(chksum);
 			
 			pkt = new DatagramPacket(data, data.length, addr);
-			//System.out.println(count);
-			// Debug output
-			//System.out.println("Sent CRC:" + chksum);
 			sk.send(pkt);
-			
-			rcvPkt.setLength(rcv.length);
-			sk.receive(rcvPkt);
-			int ackNum = r.getInt();
-			while(rcvPkt.getLength() < 4 && ackNum != count)
+		
+			startTime = System.currentTimeMillis();
+			while(true)
 			{
+				//System.out.println("Entered");
 				r.clear();
+				rcvPkt.setLength(rcv.length);
 				sk.receive(rcvPkt);
-				ackNum = r.getInt();
+				
 				if(rcvPkt.getLength() >= 4)
 				{
-					System.out.println(ackNum);
+					ackNum = r.getInt();
+					if(ackNum == count)
+					{
+						System.out.println(ackNum);
+						break;
+					}
+				}
+				endTime = System.currentTimeMillis();
+				if((endTime - startTime)/1000 > 10)
+				{
+					System.out.println("Timeout!" + (endTime - startTime)/1000);
+					sk.send(pkt);
+					continue;
 				}
 			}
 			System.out.println("OUT OF LOOP " + ackNum);
@@ -84,6 +122,8 @@ public class FileSender {
 			count += 1;
 		}
 		System.out.println("Sent " + (count-1) + " packets");
+		long end = System.currentTimeMillis();
+		System.out.println((end - start)/1000);
 	}
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();

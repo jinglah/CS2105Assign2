@@ -101,7 +101,7 @@ public class FileReceiver {
 				DatagramPacket ack = new DatagramPacket(ackData, 0, ackData.length, pkt.getSocketAddress());
 				sk.send(ack);
 				c.clear();
-			}	
+			}
 		}
 	}
 	
