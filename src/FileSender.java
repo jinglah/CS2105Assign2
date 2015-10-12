@@ -17,6 +17,8 @@ public class FileSender {
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
 		DatagramPacket pkt;
+		byte[] rcv = new byte[60];
+		
 		String dest = args[3];
 	
 		byte[] data = new byte[80];

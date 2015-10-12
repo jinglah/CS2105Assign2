@@ -1,3 +1,4 @@
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.nio.*;
@@ -17,6 +18,13 @@ public class FileReceiver {
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
 		CRC32 crc = new CRC32();
+		File destFile = null;
+		FileOutputStream fos;
+		String dest = "";
+		
+		byte[] dst = new byte[60];
+		byte[] pktData = new byte[60];
+		
 		while(true)
 		{
 			pkt.setLength(data.length);
@@ -35,6 +43,8 @@ public class FileReceiver {
 			if (crc.getValue() != chksum)
 			{
 				System.out.println("Pkt corrupt");
+				//send nak
+				
 			}
 			else
 			{
@@ -43,7 +53,41 @@ public class FileReceiver {
 				if(pktNum == 0)
 				{
 					//get destination
-				
+					dst = new byte[60];
+					b.get(dst);
+					//trim the destination byte array
+					int i = dst.length - 1;
+				    while (i >= 0 && dst[i] == 0)
+				    {
+				        i--;
+				    }
+				    dst = Arrays.copyOf(dst, i + 1);
+				    dest = new String(dst);
+					System.out.println("Destination: " + dest + dest.length());
+				}
+				else{
+					//pack file back
+					pktData = new byte[60];
+					b.get(pktData);
+//					int j = pktData.length - 1;
+//					//trim the byte array
+//				    while (j >= 0 && pktData[j] == 0)
+//				    {
+//				        j--;
+//				    }
+//				    pktData = Arrays.copyOf(pktData, j + 1);
+					try{
+						if(dest!= null)
+						{
+							destFile = new File(dest);
+							fos = new FileOutputStream(destFile, true);
+							fos.write(pktData);
+							fos.close();
+						}
+					}
+					catch(Exception e){
+						e.printStackTrace();
+					}
 				}
 			
 				DatagramPacket ack = new DatagramPacket(new byte[0], 0, 0,
@@ -52,7 +96,7 @@ public class FileReceiver {
 			}	
 		}
 	}
-
+	
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 	public static String bytesToHex(byte[] bytes, int len) {
 	    char[] hexChars = new char[len * 2];
