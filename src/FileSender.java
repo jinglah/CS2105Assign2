@@ -19,7 +19,7 @@ public class FileSender {
 		InetSocketAddress addr = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
-		sk.setSoTimeout(200);
+		sk.setSoTimeout(10);
 		DatagramPacket pkt;
 		byte[] rcv = new byte[60];
 		DatagramPacket rcvPkt; 
@@ -91,8 +91,8 @@ public class FileSender {
 			chksum = crc.getValue();
 			b.rewind();
 			b.putLong(chksum);
-			
-			pkt = new DatagramPacket(data, data.length, addr);
+			//System.out.println("buffer length: "+ (read + 20) + "data: " + data.length);
+			pkt = new DatagramPacket(data, (read + 20), addr);
 			sk.send(pkt);
 			
 			while(true)
