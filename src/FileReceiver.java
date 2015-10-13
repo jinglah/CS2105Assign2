@@ -14,6 +14,7 @@ public class FileReceiver {
 		}
 		int port = Integer.parseInt(args[0]);
 		DatagramSocket sk = new DatagramSocket(port);
+		sk.setSoTimeout(200);
 		byte[] data = new byte[1500];
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
@@ -21,7 +22,7 @@ public class FileReceiver {
 		File destFile = null;
 		FileOutputStream fos;
 		String dest = "";
-		int currPkt = 0;
+		int currPkt = -1;
 		
 		byte[] dst = new byte[60];
 		byte[] pktData = new byte[60];
@@ -55,8 +56,13 @@ public class FileReceiver {
 			}
 			else
 			{
+				
 				int pktNum = b.getInt();
-			
+				if(pktNum != (currPkt + 1))
+				{
+					System.out.println(pktNum + " current packet " + currPkt);
+					continue;
+				}
 				System.out.println("Pkt " + pktNum);
 				if(pktNum == 0)
 				{
@@ -97,10 +103,12 @@ public class FileReceiver {
 						e.printStackTrace();
 					}
 				}
+				System.out.println("Packing " + pktNum);
 				c.putInt(pktNum);
 				DatagramPacket ack = new DatagramPacket(ackData, 0, ackData.length, pkt.getSocketAddress());
 				sk.send(ack);
 				c.clear();
+				currPkt = pktNum;
 			}
 		}
 	}

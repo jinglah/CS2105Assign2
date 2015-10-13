@@ -1,0 +1,38 @@
+unreliNetPort = 9000
+rcvPort = 9001
+Loss rate = 0.1
+Corruption rate = 0.0
+Delay/reorder rate = 0.0
+-> Pkt 1
+-> Pkt 2
+<- Pkt 1
+<- Pkt 2
+-> Pkt 3
+<- Pkt 3 dropped. Total dropped: 1
+-> Pkt 4
+-> Pkt 5
+-> Pkt 6
+-> Pkt 7
+-> Pkt 8
+-> Pkt 9 dropped. Total dropped: 1
+-> Pkt 10
+-> Pkt 11
+-> Pkt 12
+-> Pkt 13
+-> Pkt 14
+-> Pkt 15
+-> Pkt 16
+-> Pkt 17 dropped. Total dropped: 2
+-> Pkt 18
+-> Pkt 19
+-> Pkt 20
+-> Pkt 21
+-> Pkt 22
+-> Pkt 23
+-> Pkt 24
+-> Pkt 25
+-> Pkt 26
+-> Pkt 27
+-> Pkt 28
+-> Pkt 29
+-> Pkt 30

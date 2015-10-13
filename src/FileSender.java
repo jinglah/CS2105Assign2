@@ -19,7 +19,7 @@ public class FileSender {
 		InetSocketAddress addr = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
 		//int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
-		sk.setSoTimeout(10);
+		sk.setSoTimeout(200);
 		DatagramPacket pkt;
 		byte[] rcv = new byte[60];
 		DatagramPacket rcvPkt; 
@@ -79,7 +79,7 @@ public class FileSender {
 				}
 				catch (SocketTimeoutException e) {
 	                //resending
-					System.out.println("Resending");
+					System.out.println("Resending" + count);
 					sk.send(pkt);
 	                continue;
 	            }
@@ -94,12 +94,15 @@ public class FileSender {
 					}
 				}
 			}
-			//System.out.println("OUT OF LOOP " + ackNum);
 			r.clear();
 			
 			count += 1;
 		}
 		System.out.println("Sent " + (count-1) + " packets");
+		sk.close();
+		is.close();
+		System.exit(0);
+	
 		//long end = System.currentTimeMillis();
 		//System.out.println((end - start)/1000);
 	}
