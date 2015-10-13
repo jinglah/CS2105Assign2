@@ -6,6 +6,8 @@ import java.util.zip.*;
 
 public class FileReceiver {
 
+	private final static int HEADER_SIZE = 20;
+	
 	public static void main(String[] args) throws Exception 
 	{
 		if (args.length != 1) {
@@ -84,7 +86,8 @@ public class FileReceiver {
 				}
 				else{
 					//pack file back
-					pktData = new byte[60];
+					pktData = new byte[pkt.getLength()-HEADER_SIZE];
+					System.out.println("Packet size: " + pkt.getLength());
 					b.get(pktData);
 //					int j = pktData.length - 1;
 //					//trim the byte array

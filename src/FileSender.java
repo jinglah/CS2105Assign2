@@ -6,6 +6,7 @@ import java.util.zip.*;
 
 public class FileSender {
 	private final static int DATA_SIZE = 60;
+	private final static int HEADER_SIZE = 20;
 	final static Timer timer = new Timer();
 
 	public static void main(String[] args) throws Exception 
@@ -87,12 +88,12 @@ public class FileSender {
 			b.putInt(count);
 			b.put(buffer);
 			crc.reset();
-			crc.update(data, 8, data.length-8);
+			crc.update(data, 8, (read + HEADER_SIZE)-8);
 			chksum = crc.getValue();
 			b.rewind();
 			b.putLong(chksum);
-			//System.out.println("buffer length: "+ (read + 20) + "data: " + data.length);
-			pkt = new DatagramPacket(data, (read + 20), addr);
+			System.out.println("buffer length: "+ (read + 20) + "data: " + data.length);
+			pkt = new DatagramPacket(data, (read + HEADER_SIZE), addr);
 			sk.send(pkt);
 			
 			while(true)
