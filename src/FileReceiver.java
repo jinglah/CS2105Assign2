@@ -14,7 +14,6 @@ public class FileReceiver {
 		}
 		int port = Integer.parseInt(args[0]);
 		DatagramSocket sk = new DatagramSocket(port);
-		sk.setSoTimeout(200);
 		byte[] data = new byte[1500];
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
@@ -60,7 +59,11 @@ public class FileReceiver {
 				int pktNum = b.getInt();
 				if(pktNum != (currPkt + 1))
 				{
-					System.out.println(pktNum + " current packet " + currPkt);
+					System.out.println("Sending ACK again "+ currPkt);
+					c.putInt(currPkt);
+					DatagramPacket ack = new DatagramPacket(ackData, 0, ackData.length, pkt.getSocketAddress());
+					sk.send(ack);
+					c.clear();
 					continue;
 				}
 				System.out.println("Pkt " + pktNum);

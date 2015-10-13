@@ -51,8 +51,33 @@ public class FileSender {
 		rcvPkt = new DatagramPacket(rcv, rcv.length);
 		ByteBuffer r = ByteBuffer.wrap(rcv);
 		sk.send(pkt);
-		
 		int ackNum;
+		while(true)
+		{
+			r.clear();
+			rcvPkt.setLength(rcv.length);
+			try{
+				sk.receive(rcvPkt);
+				System.out.println("Received!");
+			}
+			catch (SocketTimeoutException e) {
+                //resending
+				System.out.println("Resending 0");
+				sk.send(pkt);
+                continue;
+            }
+			
+			if(rcvPkt.getLength() >= 4)
+			{
+				ackNum = r.getInt();
+				System.out.println("received" + ackNum);
+				if(ackNum == 0)
+				{
+					System.out.println(ackNum);
+					break;
+				}
+			}
+		}
 		
 		while((read = is.read(buffer, 0, 60)) != -1)
 		{
